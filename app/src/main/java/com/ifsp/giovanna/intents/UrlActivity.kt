@@ -31,7 +31,9 @@ class UrlActivity : AppCompatActivity() {
             override fun onClick(p0: View?){
                 val retornoIntent = Intent()
                 retornoIntent.putExtra(URL, aub.urlEt.text.toString())
+                //só irá retornar no clique do botao passado na funcao, nao irá retornar caso seja pelo botao back
                 setResult(RESULT_OK, retornoIntent)
+                //encerra o ciclo da view
                 finish()
             }
         })
