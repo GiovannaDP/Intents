@@ -1,6 +1,7 @@
 package com.ifsp.giovanna.intents
 
 import android.content.Intent
+import android.content.Intent.ACTION_DIAL
 import android.content.Intent.ACTION_VIEW
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -59,6 +60,12 @@ class MainActivity : AppCompatActivity() {
                 val url = Uri.parse(activityMainBinding.urlTv.text.toString())
                 val navegadorIntent = Intent(ACTION_VIEW, url)
                 startActivity(navegadorIntent)
+                true
+            }
+            R.id.dialMi -> {
+                val uri = Uri.parse("tel: ${activityMainBinding.urlTv.text}")
+                val chamarIntent = Intent(ACTION_DIAL, uri)
+                startActivity(chamarIntent)
                 true
             }
             else -> { false }
