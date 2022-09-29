@@ -32,8 +32,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         activityMainBinding.entrarUrlBt.setOnClickListener {
-            val urlActivityIntent = Intent(this, UrlActivity::class.java)
-            urlActivityIntent.putExtra(URL, activityMainBinding.urlTv.text.toString())
+            // val urlActivityIntent = Intent(this, UrlActivity::class.java)
+            val urlActivityIntent = Intent("URL_ACTIVITY")
+            urlActivityIntent.putExtra(URL, activityMainBinding.urlTv.text)
             urlArl.launch(urlActivityIntent)
         }
     }
