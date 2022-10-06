@@ -9,9 +9,11 @@ import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var urlArl: ActivityResultLauncher<Intent>
     private lateinit var permissaoChamadaArl: ActivityResultLauncher<String>
+    private lateinit var pegarImagemArl: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,25 +37,42 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.subtitle = "MainActivity"
 
         urlArl = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            resultado ->
-            if(resultado.resultCode == RESULT_OK){
+            resultado: ActivityResult ->
+            if(resultado.resultCode == RESULT_OK) {
                 val urlRetornada = resultado.data?.getStringExtra(URL) ?: ""
                 activityMainBinding.urlTv.text = urlRetornada
             }
         }
 
-        permissaoChamadaArl = registerForActivityResult(ActivityResultContracts.RequestPermission(),
-        object: ActivityResultCallback<Boolean>{
+        permissaoChamadaArl = registerForActivityResult(ActivityResultContracts.RequestPermission()
+        ) { permissaoConcedida ->
             //unit é o mesmo que void
-            override fun onActivityResult(permissaoConcedida: Boolean?) {
-                if (permissaoConcedida!!){
-                    chamarNumero((true))
-                }else {
-                    Toast.makeText(this@MainActivity, "Permissão necessária para execução", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
+            if (permissaoConcedida!!) {
+                chamarNumero((true))
+            } else {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Permissão necessária para execução",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
             }
-        })
+        }
+
+        pegarImagemArl = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                resultado: ActivityResult ->
+            if(resultado.resultCode == RESULT_OK){
+                //recebendo o path da imagem
+                val imagemRetornada = resultado.data?.data
+                imagemRetornada?.let {
+                    activityMainBinding.urlTv.text = it.toString()
+                }
+
+                //abrindo um visualizador
+                val visualizarImagemIntent = Intent(ACTION_VIEW, imagemRetornada)
+                startActivity(visualizarImagemIntent)
+            }
+        }
 
         activityMainBinding.entrarUrlBt.setOnClickListener {
             // chamada de outra tela
@@ -104,9 +124,28 @@ class MainActivity : AppCompatActivity() {
                         chamarNumero(true)
                     } else {
                         // solicitar permissao
-
+                        permissaoChamadaArl.launch(CALL_PHONE)
                     }
+                } else{
+                    chamarNumero(true)
                 }
+                true
+            }
+
+            R.id.pickMi -> {
+                val pegarImagemIntent = Intent(ACTION_PICK)
+                val diretorioImagens = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).path
+                pegarImagemIntent.setDataAndType(Uri.parse(diretorioImagens), "image/*")
+                pegarImagemArl.launch(pegarImagemIntent)
+                true
+            }
+
+            R.id.chooserMi -> {
+                val escolherAppIntent = Intent(ACTION_CHOOSER)
+                val informacoesIntent = Intent(ACTION_VIEW, Uri.parse(activityMainBinding.urlTv.text.toString()))
+                escolherAppIntent.putExtra(EXTRA_TITLE, "Escolha seu navegador")
+                escolherAppIntent.putExtra(EXTRA_INTENT, informacoesIntent)
+                startActivity(escolherAppIntent)
                 true
             }
             else -> { false }
